@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tom Semrad · Quest Log Edition</title>
+<meta name="description" content="Tom Semrad designs the tests that decide whether an AI system actually works, and builds game NPCs that believe what they hear based on who said it.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Alegreya+Sans:wght@400;500;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --night: #0e1116; --panel: #161b23; --panel-2: #1c222c; --edge: #3a3226; --gold: #d8ad55; --gold-dim: #8f7440;
+  --text: #e9e2d2; --muted: #a59d8c; --done: #6fbf8e; --active: #e2b44f; --failed: #d9695f; --mana: #5aa2d6;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0; color: var(--text); font: 18px/1.6 "Alegreya Sans", system-ui, sans-serif;
+  background:
+    radial-gradient(1200px 600px at 50% -10%, #23202a 0%, transparent 60%),
+    radial-gradient(800px 500px at 100% 100%, #1a1712 0%, transparent 60%),
+    var(--night);
+}
+a { color: var(--gold); }
+.wrap { max-width: 940px; margin: 0 auto; padding: 0 16px 60px; }
+
+/* framed panel: double border like a game UI window */
+.panel {
+  position: relative; background: linear-gradient(180deg, var(--panel-2), var(--panel));
+  border: 1px solid var(--edge); outline: 1px solid #00000080; outline-offset: -5px;
+  box-shadow: inset 0 0 0 4px #0b0d11, inset 0 0 0 5px var(--edge), 0 12px 40px #00000066;
+  border-radius: 6px; padding: 28px;
+}
+.panel::before, .panel::after {
+  content: "◆"; position: absolute; top: -9px; color: var(--gold); font-size: 14px;
+}
+.panel::before { left: 18px; } .panel::after { right: 18px; }
+
+h1, h2, h3 { font-family: Cinzel, Georgia, serif; letter-spacing: .02em; margin: 0; }
+.section-title { display: flex; align-items: center; gap: 14px; margin: 56px 0 18px; }
+.section-title h2 { font-size: 24px; color: var(--gold); text-transform: uppercase; letter-spacing: .12em; white-space: nowrap; }
+.section-title::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, var(--gold-dim), transparent); }
+.section-title .count { font-family: "JetBrains Mono", monospace; font-size: 13px; color: var(--muted); }
+
+/* character sheet */
+.sheet { margin-top: 48px; display: grid; grid-template-columns: 1fr; gap: 22px; }
+.sheet .eyebrow { font-family: "JetBrains Mono", monospace; font-size: 12.5px; color: var(--gold-dim); letter-spacing: .14em; text-transform: uppercase; }
+.sheet h1 { font-size: clamp(36px, 7vw, 56px); font-weight: 800; color: var(--text); margin: 6px 0 2px; }
+.class-line { color: var(--gold); font-family: Cinzel, serif; font-size: 17px; letter-spacing: .06em; }
+.bio { font-size: 20px; max-width: 680px; margin: 18px 0 0; }
+.attrs { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.attr { background: #0b0e13; border: 1px solid var(--edge); border-radius: 4px; padding: 12px 14px; }
+.attr b { display: block; font-family: Cinzel, serif; font-size: 26px; color: var(--gold); line-height: 1.1; }
+.attr span { font-size: 14px; color: var(--muted); }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.btn {
+  display: inline-block; padding: 10px 18px; font-family: Cinzel, serif; font-weight: 600; font-size: 14.5px; letter-spacing: .08em;
+  color: var(--gold); text-decoration: none; border: 1px solid var(--gold-dim); border-radius: 3px; background: #0b0e13;
+}
+.btn.primary { background: linear-gradient(180deg, #e3bb64, #b88b36); color: #1a140b; border-color: #e9c77c; }
+.btn:hover { filter: brightness(1.12); }
+
+/* quests */
+.quest { margin-bottom: 14px; }
+.quest-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 14px; }
+.quest h3 { font-size: 20px; color: var(--text); }
+.status { font-family: "JetBrains Mono", monospace; font-size: 12px; letter-spacing: .1em; padding: 3px 9px; border-radius: 2px; border: 1px solid; white-space: nowrap; }
+.status.done { color: var(--done); border-color: #2f5a42; background: #13241b; }
+.status.active { color: var(--active); border-color: #6b5422; background: #241d0f; }
+.status.failed { color: var(--failed); border-color: #6a2d28; background: #241312; }
+.quest p { margin: 8px 0 0; color: #d6cfbf; }
+.reward { margin-top: 10px; font-size: 15.5px; color: var(--muted); }
+.reward b { color: var(--gold); font-weight: 700; }
+.reward a { font-weight: 700; }
+
+.main-quest .objectives { list-style: none; padding: 0; margin: 16px 0 0; }
+.main-quest .objectives li { padding: 5px 0 5px 28px; position: relative; color: #d6cfbf; }
+.main-quest .objectives li::before { content: "✔"; position: absolute; left: 4px; color: var(--done); }
+.main-quest .objectives li.todo::before { content: "◇"; color: var(--active); }
+.xp { margin-top: 18px; }
+.xp-label { display: flex; justify-content: space-between; font-family: "JetBrains Mono", monospace; font-size: 12.5px; color: var(--muted); }
+.xp-bar { height: 10px; background: #0b0e13; border: 1px solid var(--edge); border-radius: 2px; margin-top: 6px; overflow: hidden; }
+.xp-fill { height: 100%; width: 70%; background: linear-gradient(90deg, #4a86b5, var(--mana)); box-shadow: 0 0 12px #5aa2d688; }
+.note { margin-top: 14px; font-size: 15.5px; color: var(--muted); font-style: italic; }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 14px; }
+.grid .panel { padding: 22px; }
+.repo-name { font-family: "JetBrains Mono", monospace; font-size: 15px; color: var(--gold); text-decoration: none; }
+
+.code { counter-reset: r; }
+.code li { list-style: none; position: relative; padding: 8px 0 8px 46px; border-bottom: 1px dashed #2c271f; }
+.code li:last-child { border-bottom: 0; }
+.code li::before {
+  counter-increment: r; content: counter(r, upper-roman); position: absolute; left: 0; top: 8px; width: 34px;
+  font-family: Cinzel, serif; color: var(--gold); text-align: center;
+}
+.code b { color: var(--text); }
+.code span { color: var(--muted); }
+.code ol { padding: 0; margin: 0; }
+
+.lore p { margin: 0 0 12px; max-width: 700px; }
+footer { margin-top: 56px; text-align: center; color: var(--muted); font-size: 15px; }
+footer .actions { justify-content: center; margin-top: 12px; }
+
+@media (max-width: 560px) {
+  .panel { padding: 20px; }
+  .bio { font-size: 18px; }
+  .section-title h2 { font-size: 19px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- CHARACTER SHEET -->
+<div class="sheet panel">
+  <div>
+    <div class="eyebrow">Character</div>
+    <h1>Tom Semrad</h1>
+    <div class="class-line">Evaluation Designer · Game AI Builder</div>
+    <p class="bio">I design the tests that decide whether an AI system actually works, including when the answer is no.
+      Lately I'm building game characters who believe what they hear based on who said it.</p>
+  </div>
+  <div class="attrs">
+    <div class="attr"><b>34</b><span>claims on the record, failures included</span></div>
+    <div class="attr"><b>4</b><span>public evaluations</span></div>
+    <div class="attr"><b>214</b><span>NPCs run inside Unreal</span></div>
+    <div class="attr"><b>300/300</b><span>random worlds hold</span></div>
+  </div>
+  <div class="actions">
+    <a class="btn primary" href="Tom_Semrad_Resume.pdf">Résumé</a>
+    <a class="btn" href="https://github.com/DonMerlin77">GitHub</a>
+    <a class="btn" href="https://www.linkedin.com/in/thomas-semrad">LinkedIn</a>
+  </div>
+</div>
+
+<!-- MAIN QUEST -->
+<div class="section-title"><h2>Main Quest</h2></div>
+<div class="panel main-quest">
+  <div class="quest-head">
+    <h3>Hearsay: NPCs that remember who told them what</h3>
+    <span class="status active">IN PROGRESS</span>
+  </div>
+  <p>Most game characters know everything or nothing. In Hearsay, a villager believes a rumor based on who said it,
+    where it started, and whether that person held up when checked. Ten people repeating one source count as one
+    voice. When a subject is contested, the NPC goes to look for itself instead of acting on a guess. Personalities,
+    moods and relationships let a whole town disagree in believable ways.</p>
+  <ul class="objectives">
+    <li>Build the belief layer, with a test written in advance and a control built to fail for every feature</li>
+    <li>Prove the core promises on 300 randomly generated worlds, not hand-picked demos</li>
+    <li>Make it fast without changing a single answer: 1.4 s to ~35 ms per decision, 982 of 982 identical</li>
+    <li>Run it inside Unreal Engine 5.8: 1,914 engine calls, 0 failed, worst frame 29.7 ms</li>
+    <li class="todo">A playable tavern where the regulars remember how you treat them</li>
+    <li class="todo">NPCs that speak in their own voices, from what they actually believe</li>
+  </ul>
+  <div class="xp">
+    <div class="xp-label"><span>v1.0 · rules frozen</span><span>next: the tavern</span></div>
+    <div class="xp-bar"><div class="xp-fill"></div></div>
+  </div>
+  <p class="note">The code is private. Happy to walk studios through it.</p>
+</div>
+
+<!-- COMPLETED -->
+<div class="section-title"><h2>Quests Completed</h2><span class="count">every result reproducible from a committed script</span></div>
+<div class="panel quest">
+  <div class="quest-head"><h3>An evaluation an engine developer adopted</h3><span class="status done">COMPLETE</span></div>
+  <p>Designed an application-level retrieval test for game-NPC memory (n = 127). The lead engineer of a deterministic
+    game-AI engine ran it to approve his embedder release.</p>
+  <div class="reward">Reward: <b>a test in someone else's release gate</b> · <a href="https://github.com/DonMerlin77/aioos-retrieval-eval">aioos-retrieval-eval</a></div>
+</div>
+<div class="panel quest">
+  <div class="quest-head"><h3>Stop a fine-tuned model from shipping</h3><span class="status done">COMPLETE</span></div>
+  <p>A DPO-trained model scored well on its own metric but made real decisions worse (n = 318, z = −6.27). Measured
+    it, kept it out of deployment, then rebuilt the metric so it tracks real usefulness.</p>
+  <div class="reward">Reward: <b>a bad model caught before anyone relied on it</b></div>
+</div>
+<div class="panel quest">
+  <div class="quest-head"><h3>Find the real limit, then remove it</h3><span class="status done">COMPLETE</span></div>
+  <p>Ran 214 NPCs headless in Unreal with zero failed calls. Found the true bottleneck (the CPU relation judge, 2 to 5
+    new free-text claims per second) and removed it for game events: 40 new claims per second.</p>
+  <div class="reward">Reward: <b>8 to 20 times more new claims per second</b></div>
+</div>
+<div class="panel quest">
+  <div class="quest-head"><h3>Save a research spike before it starts</h3><span class="status done">COMPLETE</span></div>
+  <p>Tested three candidate NLI models against a production judge, with the fitness bar set in advance. None
+    qualified, so nobody spent weeks integrating them.</p>
+  <div class="reward">Reward: <b>weeks of engineering not wasted</b></div>
+</div>
+
+<!-- FAILED -->
+<div class="section-title"><h2>Quests Failed</h2><span class="count">kept on the record on purpose</span></div>
+<div class="panel quest">
+  <div class="quest-head"><h3>Orlog: an AI decision council</h3><span class="status failed">ABANDONED</span></div>
+  <p>Shipped a live product with login and subscription billing. Then tested it fairly: its answers tied a single
+    well-written prompt. Retired the product, kept the lesson.</p>
+  <div class="reward">Lesson: <b>test before you get attached</b></div>
+</div>
+<div class="panel quest">
+  <div class="quest-head"><h3>A real probability for every belief</h3><span class="status failed">KILL LINE TRIPPED</span></div>
+  <p>Fitted a probability for Hearsay's beliefs. It ranked right from wrong far better than before, but it wasn't
+    calibrated on the noisier world, so by the rule set in advance it didn't ship.</p>
+  <div class="reward">Lesson: <b>a good ranking isn't a trustworthy probability</b></div>
+</div>
+
+<!-- SIDE QUESTS -->
+<div class="section-title"><h2>Side Quests</h2><span class="count">open-source evaluations</span></div>
+<div class="grid">
+  <div class="panel"><a class="repo-name" href="https://github.com/DonMerlin77/aioos-retrieval-eval">aioos-retrieval-eval</a>
+    <p>Retrieval quality on game-memory queries: audited labels, nDCG@3 = 0.68, and controls that fail if the metric is fake.</p></div>
+  <div class="panel"><a class="repo-name" href="https://github.com/DonMerlin77/aioos-channel-routing">aioos-channel-routing</a>
+    <p>Embedding routing beats keyword rules by +0.35 (n = 116), with a pre-registered falsification pass.</p></div>
+  <div class="panel"><a class="repo-name" href="https://github.com/DonMerlin77/shortcut-gate">shortcut-gate</a>
+    <p>Catches label-leaking shortcuts in preference-training data before they reach a training run.</p></div>
+  <div class="panel"><a class="repo-name" href="https://github.com/DonMerlin77/reasoning-assay">reasoning-assay</a>
+    <p>Does a model revise when a fact defeats its position, and hold when it doesn't? Scope stated up front.</p></div>
+</div>
+
+<!-- CODE -->
+<div class="section-title"><h2>Code of the Order</h2><span class="count">how every quest is run</span></div>
+<div class="panel code">
+  <ol>
+    <li><b>Write the claim so it can be wrong.</b> <span>A specific prediction, not "it works".</span></li>
+    <li><b>Set the kill line before running.</b> <span>The pass/fail bar is committed before any result exists.</span></li>
+    <li><b>Build a control that must fail.</b> <span>If the test can't catch a broken version, the test is blind.</span></li>
+    <li><b>Let the measurement decide.</b> <span>Not my opinion, and never a model grading itself.</span></li>
+    <li><b>Keep the failures.</b> <span>Negative results go in the same ledger as the wins.</span></li>
+  </ol>
+</div>
+
+<!-- LORE -->
+<div class="section-title"><h2>Lore</h2></div>
+<div class="panel lore">
+  <p>I studied criminology with a minor in psychology, and that's still how I look at AI: what do people actually
+    believe, why, and what happens when the evidence is wrong? I direct AI coding tools to build the systems I test,
+    and I'm upfront about that. My part is the design and the judgment: what to build, how to know if it works,
+    and when to stop.</p>
+  <p>Data Science certificate (TripleTen, 2026), with coursework in
+    <a href="https://github.com/DonMerlin77/gold-ore-purification-ml">machine learning</a>,
+    <a href="https://github.com/DonMerlin77/chicago-taxi-sql-analysis">SQL and statistics</a> and
+    <a href="https://github.com/DonMerlin77/data-science-projects">more</a>.
+    Based in Waukesha, Wisconsin. Looking for my party: AI evaluation, applied AI, and game AI roles.</p>
+</div>
+
+<footer>
+  <div>Tom Semrad · <a href="index.html">standard edition</a></div>
+  <div class="actions">
+    <a class="btn primary" href="Tom_Semrad_Resume.pdf">Résumé</a>
+    <a class="btn" href="https://github.com/DonMerlin77">GitHub</a>
+    <a class="btn" href="https://www.linkedin.com/in/thomas-semrad">LinkedIn</a>
+  </div>
+</footer>
+
+</div>
+</body>
+</html>

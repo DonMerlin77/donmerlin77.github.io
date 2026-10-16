@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tom Semrad · AI Evaluation</title>
+<meta name="description" content="Tom Semrad designs the tests that decide whether an AI system actually works. AI evaluation, applied AI and game AI.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #fcfcfd; --side: #f1f3f6; --ink: #12161c; --muted: #5b6573; --line: #dfe3e9;
+  --accent: #1d5fa8; --pass: #1f7a4d; --fail: #b3412f;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1216; --side: #151a20; --ink: #e8ecf1; --muted: #9aa5b3; --line: #262d36;
+    --accent: #6aa8ea; --pass: #5cc48f; --fail: #e47766;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1216; --side: #151a20; --ink: #e8ecf1; --muted: #9aa5b3; --line: #262d36;
+  --accent: #6aa8ea; --pass: #5cc48f; --fail: #e47766;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16.5px/1.6 "IBM Plex Sans", system-ui, sans-serif; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.layout { display: grid; grid-template-columns: 300px 1fr; min-height: 100vh; }
+aside { background: var(--side); border-right: 1px solid var(--line); padding: 48px 32px; }
+.sticky { position: sticky; top: 48px; }
+h1, h2, h3 { font-family: "Space Grotesk", system-ui, sans-serif; margin: 0; }
+h1 { font-size: 34px; line-height: 1.1; letter-spacing: -.01em; }
+.role { margin: 10px 0 0; font-weight: 600; color: var(--accent); }
+.where { color: var(--muted); font-size: 15px; margin: 4px 0 0; }
+.links { list-style: none; padding: 0; margin: 26px 0 0; display: grid; gap: 8px; font-size: 15.5px; }
+.links li::before { content: "→ "; color: var(--muted); }
+.resume-btn { display: inline-block; margin-top: 24px; padding: 10px 16px; background: var(--accent); color: #fff; font-weight: 600; border-radius: 6px; font-size: 15px; }
+.resume-btn:hover { text-decoration: none; filter: brightness(1.08); }
+.side-stats { margin-top: 32px; padding-top: 22px; border-top: 1px solid var(--line); display: grid; gap: 14px; }
+.side-stats b { display: block; font-family: "Space Grotesk", sans-serif; font-size: 24px; line-height: 1.1; }
+.side-stats span { font-size: 13.5px; color: var(--muted); }
+main { padding: 48px 56px 64px; max-width: 860px; }
+section { margin-bottom: 44px; }
+h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .14em; color: var(--muted); padding-bottom: 8px; border-bottom: 2px solid var(--ink); margin-bottom: 18px; }
+.summary { font-size: 19px; line-height: 1.55; margin: 0; }
+.item { padding: 14px 0; border-bottom: 1px solid var(--line); }
+.item:last-child { border-bottom: 0; }
+.item-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 16px; }
+.item h3 { font-size: 18px; }
+.meta { font-family: "IBM Plex Mono", monospace; font-size: 12.5px; color: var(--muted); white-space: nowrap; }
+.item p { margin: 6px 0 0; }
+.item ul { margin: 6px 0 0; padding-left: 20px; }
+.item li { margin: 3px 0; }
+.badge { font-family: "IBM Plex Mono", monospace; font-size: 11.5px; letter-spacing: .06em; padding: 2px 7px; border-radius: 4px; border: 1px solid currentColor; }
+.badge.pass { color: var(--pass); }
+.badge.fail { color: var(--fail); }
+.num { font-family: "Space Grotesk", sans-serif; font-weight: 700; color: var(--accent); }
+.skills { display: grid; grid-template-columns: 150px 1fr; gap: 8px 16px; }
+.skills dt { font-weight: 600; }
+.skills dd { margin: 0; color: var(--muted); }
+.compact { color: var(--muted); font-size: 15.5px; margin-top: 10px; }
+footer { color: var(--muted); font-size: 14.5px; border-top: 1px solid var(--line); padding-top: 18px; }
+@media (max-width: 820px) {
+  .layout { grid-template-columns: 1fr; }
+  aside { border-right: 0; border-bottom: 1px solid var(--line); padding: 32px 16px; }
+  .sticky { position: static; }
+  .side-stats { grid-template-columns: repeat(2, 1fr); }
+  main { padding: 32px 16px 48px; }
+  .skills { grid-template-columns: 1fr; gap: 2px; }
+  .skills dd { margin-bottom: 10px; }
+}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<aside><div class="sticky">
+  <h1>Tom Semrad</h1>
+  <p class="role">AI Evaluation · Applied AI · Game AI</p>
+  <p class="where">Waukesha, Wisconsin · open to remote</p>
+  <a class="resume-btn" href="Tom_Semrad_Resume.pdf">Download résumé (PDF)</a>
+  <ul class="links">
+    <li><a href="https://github.com/DonMerlin77">github.com/DonMerlin77</a></li>
+    <li><a href="https://www.linkedin.com/in/thomas-semrad">linkedin.com/in/thomas-semrad</a></li>
+    <li><a href="quest.html">Quest-log edition</a></li>
+  </ul>
+  <div class="side-stats">
+    <div><b>34</b><span>claims on record, each reproducible</span></div>
+    <div><b>4</b><span>public evaluations</span></div>
+    <div><b>214</b><span>NPCs run inside Unreal</span></div>
+    <div><b>300/300</b><span>random worlds pass</span></div>
+  </div>
+</div></aside>
+
+<main>
+  <section>
+    <h2>Summary</h2>
+    <p class="summary">I test AI systems to find out if they actually work. Before I run anything, I decide what counts
+      as a pass and build a broken version that should fail, so I know the test can tell the difference. When something
+      doesn't hold up, that goes on the record too. I use AI coding tools to build what I test, and my part is figuring
+      out whether it's any good.</p>
+  </section>
+
+  <section>
+    <h2>Selected results</h2>
+    <div class="item">
+      <div class="item-head"><h3>An evaluation adopted into an engine's release gate</h3><span class="badge pass">PASS</span></div>
+      <p>Designed an application-level retrieval test for game-NPC memory (<span class="num">n = 127</span>). The lead
+        engineer of a deterministic game-AI engine ran it to approve his embedder release.
+        <a href="https://github.com/DonMerlin77/aioos-retrieval-eval">Repo</a></p>
+    </div>
+    <div class="item">
+      <div class="item-head"><h3>Kept a degrading fine-tuned model from shipping</h3><span class="badge fail">CAUGHT</span></div>
+      <p>A DPO-trained model scored well on its own metric but made real decisions worse
+        (<span class="num">n = 318, z = −6.27</span>). Measured it, stopped it, and rebuilt the metric to track real usefulness.</p>
+    </div>
+    <div class="item">
+      <div class="item-head"><h3>NPC belief system running inside Unreal Engine</h3><span class="badge pass">PASS</span></div>
+      <p><span class="num">214 NPCs</span> with zero failed calls and a 38 ms worst frame. Found the real limit (2 to 5
+        new free-text claims per second) and removed it for game events: <span class="num">40 per second</span>.</p>
+    </div>
+    <div class="item">
+      <div class="item-head"><h3>Ruled out three models before an integration spike</h3><span class="badge fail">0 OF 3 FIT</span></div>
+      <p>Tested candidate NLI models against a production judge with the fitness bar set in advance. None qualified,
+        which saved weeks of planned engineering work.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Projects</h2>
+    <div class="item">
+      <div class="item-head"><h3>Hearsay: provenance-aware beliefs for game NPCs</h3><span class="meta">2026 · v1.0 · private</span></div>
+      <p>NPCs believe what they hear based on who said it, where the claim started, and whether the source held up when
+        checked. Copies of one source count once; contested subjects make NPCs verify instead of act.</p>
+      <ul>
+        <li>Every feature shipped with a pre-registered test and a control that must fail.</li>
+        <li>Core promises verified on 300 randomly generated worlds.</li>
+        <li>Decision time cut from 1.4 s to about 35 ms with identical answers (982 of 982).</li>
+        <li>Runs in Unreal Engine 5.8: 1,914 engine calls, 0 failed, 29.7 ms worst frame.</li>
+      </ul>
+      <p class="compact">Code available to studios on request. Next: a playable tavern slice.</p>
+    </div>
+    <div class="item">
+      <div class="item-head"><h3>Public evaluations</h3><span class="meta">open source</span></div>
+      <ul>
+        <li><a href="https://github.com/DonMerlin77/aioos-retrieval-eval">aioos-retrieval-eval</a>: game-memory retrieval, audited labels, nDCG@3 = 0.68, bootstrap CIs.</li>
+        <li><a href="https://github.com/DonMerlin77/aioos-channel-routing">aioos-channel-routing</a>: embedding routing beats keyword rules by +0.35 (n = 116).</li>
+        <li><a href="https://github.com/DonMerlin77/shortcut-gate">shortcut-gate</a>: catches label-leaking shortcuts in preference-training data.</li>
+        <li><a href="https://github.com/DonMerlin77/reasoning-assay">reasoning-assay</a>: shortcut-resistant test of revising vs holding a position under pushback.</li>
+      </ul>
+    </div>
+    <div class="item">
+      <div class="item-head"><h3>Orlog: AI decision tool</h3><span class="meta">2026 · retired</span></div>
+      <p>Shipped a live product with subscription billing on Modal and Cloudflare. A fair test showed its answers tied a
+        single well-written prompt, so I retired it and kept the lesson.</p>
+    </div>
+    <div class="item">
+      <div class="item-head"><h3>Mimir: fine-tuned small language models</h3><span class="meta">2026</span></div>
+      <p>Built a DPO pipeline end to end: pair generation, GPU training on Modal, evaluation, and the measurement that
+        kept a degrading model from deployment.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Experience</h2>
+    <div class="item">
+      <div class="item-head"><h3>Founder, Continuum Goods</h3><span class="meta">2024 – present</span></div>
+      <p>Designed and directed a Python multi-agent automation stack (AI-assisted implementation) integrating Shopify,
+        Instagram, Pinterest and Facebook APIs with LLM-driven content and decision agents.</p>
+    </div>
+    <div class="item">
+      <div class="item-head"><h3>Produce Supervisor, Costco Wholesale</h3><span class="meta">2024 – present</span></div>
+      <p>Lead a produce department in a high-volume warehouse: team coordination, process documentation, and
+        independent decisions under pressure.</p>
+    </div>
+    <div class="item">
+      <div class="item-head"><h3>Employment Specialist / Job Coach, Pantheon</h3><span class="meta">2024</span></div>
+      <p>Assessed client needs and built tailored support plans across clients, employers and case managers.</p>
+      <p class="compact">Earlier: Electrician, Pieper Electric (2023–2024) · Server / Trainer, Olive Garden (2017–2022)</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Skills</h2>
+    <dl class="skills">
+      <dt>Evaluation</dt><dd>Pre-registration · positive and negative controls · held-out and adversarial test sets · bootstrap CIs · nDCG / balanced accuracy · catching data leaks and hollow tests</dd>
+      <dt>Building</dt><dd>AI-assisted development (Claude Code) · Python (read, test, direct) · Unreal Engine 5 · Hugging Face · Modal · Git / GitHub · pandas / scikit-learn · SQL</dd>
+    </dl>
+  </section>
+
+  <section>
+    <h2>Education</h2>
+    <div class="item">
+      <div class="item-head"><h3>Data Science Certificate, TripleTen</h3><span class="meta">2026</span></div>
+      <p>Python, SQL, machine learning, statistics.
+        <a href="https://github.com/DonMerlin77/data-science-projects">Projects</a></p>
+    </div>
+    <div class="item">
+      <div class="item-head"><h3>B.S. Criminology, Minor in Psychology, UW–Whitewater</h3><span class="meta">2016 – 2020</span></div>
+    </div>
+  </section>
+
+  <footer>Every result above traces to a committed script that reproduces it.</footer>
+</main>
+
+</div>
+</body>
+</html>
